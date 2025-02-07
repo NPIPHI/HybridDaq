@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body style="width: 100vw; height: 100vh; overflow: hidden; margin: 0; padding: 0;">
+    <button id="connect" style="width: 100%; height: 100%;" onclick="connect()">Connect</button>
+    <div id="ui" style="display: none; width: 100%; height: 100%;">
+        <div style="display: grid; grid-template-rows: 2fr 1fr 1fr 1fr; grid-template-columns: 1fr 1fr; width: 100%; height: 80%;">
+            <div id="readout" style="grid-column: 1 / span 2;"></div>
+            <button id="arm" style="background-color: red; grid-column: 1 / span 2;">ARM</button>
+            <button id="close">CLOSE</button>
+            <button id="open">OPEN</button>
+            <button id="auto arm">AUTOARM</button>
+            <button id="auto disarm">AUTODISARM</button>
+        </div>
+    </div>
+    <script>
+const OpenCode = 129035867;
+const CloseCode = 2065891205;
+const ArmCode = 671238032;
+const DisarmCode = 301529212;
+
+function read_dataview(value){
+    return {
+        force: value.getFloat32(0,true),
+        pres1: value.getFloat32(4,true),
+        pres2: value.getFloat32(8,true),
+        det_volt: value.getFloat32(12,true),
+        ball_open: value.getInt8(16),
+        armed: value.getInt8(17),
+    }
+}
+
+const ARM = document.getElementById("arm")
+const OPEN = document.getElementById("open")
+const CLOSE = document.getElementById("close")
+const AUTOARM = document.getElementById("auto arm");
+const AUTODISARM = document.getElementById("auto disarm");
+const READOUT = document.getElementById("readout");
+let armed = false;
+
+ARM.addEventListener("touchstart", ()=>{
+    ARM.style.backgroundColor = "green";
+    armed = true;
+})
+ARM.addEventListener("touchend", ()=>{
+    ARM.style.backgroundColor = "red";
+    armed = false;
+})
+OPEN.addEventListener("touchstart", ()=>{
+    if(armed){
+        write_command(OpenCode);
+    }
+})
+CLOSE.addEventListener("touchstart", ()=>{
+    if(armed){
+        write_command(CloseCode);
+    }
+})
+AUTOARM.addEventListener("touchstart", ()=>{
+    if(armed){
+        write_command(ArmCode);
+    }
+})
+AUTODISARM.addEventListener("touchstart", ()=>{
+    if(armed){
+        write_command(DisarmCode);
+    }
+})
+
+
+
+let connection = {
+    daq: null,
+    actuate: null,
+}
+
+let cmds = []
+
+async function write_command(cmd){
+    cmds.push(cmd)
+}
+
+async function connect(){
+    try {
+        let service_id = "47da423a-5990-4b7a-b193-9b56c95926b1";
+        let daq_id = "55c39af6-6f39-4ba6-8d49-6066c30ca1e9";
+        let actuate_id = "07ecb91a-5534-44ca-8a97-942ef72e4e6b";
+        let device = await navigator.bluetooth.requestDevice({filters: [{services: [service_id]}]});
+        let server = await device.gatt.connect();
+        let service = await server.getPrimaryService(service_id);
+
+        let characteristics = await service.getCharacteristics();
+        let daq = characteristics.find(x=>x.uuid==daq_id);
+        let actuate = characteristics.find(x=>x.uuid==actuate_id);
+
+        connection = {
+            daq: daq,
+            actuate: actuate
+        }
+
+        document.getElementById("connect").remove();
+        document.getElementById("ui").style.display = "block";
+        start_polling(connection);
+    } catch(e){
+        alert(e);
+    }
+}
+
+async function start_polling({daq,actuate}){
+    while(true){
+        if(cmds.length != 0){
+            let cmd = cmds.pop();
+            let arr = new Int32Array([cmd]);
+            await actuate.writeValueWithoutResponse(arr.buffer);
+        }
+        let read = read_dataview(await daq.readValue());
+        READOUT.innerText = 
+`Force(g)   ${read.force}
+Pres1(psi) ${read.pres1}
+Pres2(psi) ${read.pres2}
+Volt(v)    ${read.det_volt}
+Armed      ${read.armed}
+Ball Open  ${read.ball_open}`;
+
+        if(read.ball_open) {
+            OPEN.style.backgroundColor = "lightgreen";
+            CLOSE.style.backgroundColor = "gray";
+        } else {
+            OPEN.style.backgroundColor = "gray";
+            CLOSE.style.backgroundColor = "lightgreen";
+        }
+
+        if(read.armed) {
+            AUTOARM.style.backgroundColor = "lightgreen";
+            AUTODISARM.style.backgroundColor = "gray";
+        } else {
+            AUTOARM.style.backgroundColor = "gray";
+            AUTODISARM.style.backgroundColor = "lightgreen";
+        }
+    }
+}
+    </script>
+</body>
+</html>
