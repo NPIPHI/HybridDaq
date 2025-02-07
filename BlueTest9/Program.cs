@@ -105,7 +105,7 @@ namespace BlueTest9
 
                     string line = port.ReadLine();
                     string[] split = line.Split(new char[] { '\t', '\r', ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                    if (split.Length != 9)
+                    if (split.Length != 4)
                     {
                         continue;
                     }
@@ -116,10 +116,15 @@ namespace BlueTest9
                         float pressure1 = float.Parse(split[2]);
                         float pressure2 = float.Parse(split[3]);
                         float pressure3 = float.Parse(split[4]);
-                        float det_voltage = float.Parse(split[5]);
-                        int is_open = int.Parse(split[6]);
-                        int is_auto_armed = int.Parse(split[7]);
-                        int ematch_detected_time = int.Parse(split[7]);
+                        float det_voltage = 0;
+                        int is_open = 0;
+                        int is_auto_armed = 0;
+                        int ematch_detected_time = 0;
+                        //int ematch_deteced_time = 0;
+                        //float det_voltage = float.Parse(split[5]);
+                        //int is_open = int.Parse(split[6]);
+                        //int is_auto_armed = int.Parse(split[7]);
+                        //int ematch_detected_time = int.Parse(split[7]);
                         avg1 = avg1 * 0.9 + (float)pressure1 * 0.1;
                         avg2 = avg2 * 0.9 + (float)pressure2 * 0.1;
                         avg3 = avg3 * 0.9 + (float)pressure3 * 0.1;
