@@ -7,6 +7,7 @@ using Windows.System;
 using Windows.UI.Xaml.Automation.Peers;
 using System.Linq.Expressions;
 using Windows.Gaming.Input.ForceFeedback;
+using System.Text;
 
 // This example code shows how you could implement the required main function for a 
 // Console UWP Application. You can replace all the code inside Main with your own custom code.
@@ -71,10 +72,12 @@ namespace BlueTest9
                 SerialPort port = new SerialPort(address, 38400);
                 StorageFile file = await DownloadsFolder.CreateFileAsync(DateTime.Now.ToString("yyyy.MM.dd.HH.mm.ss") + ".csv");
                 Console.WriteLine($"Logging to {file.Path}");
-                StreamWriter csvLog = new StreamWriter(await file.OpenStreamForWriteAsync());
+                BufferedStream csvLog = new BufferedStream(await file.OpenStreamForWriteAsync());
+
                 port.Open();
                 Console.WriteLine("Port opened");
-                csvLog.WriteLine("millis,force,p1,p2,p3,dev_volt,is_open,is_auto_armed,ematch_detect_time");
+                byte[] header = Encoding.UTF8.GetBytes("p1,p2,p3,p4\n");
+                csvLog.Write(header,0,header.Length);
                 port.Write(" ");
                 double avg1 = 0.0;
                 double avg2 = 0.0;
@@ -105,7 +108,7 @@ namespace BlueTest9
 
                     string line = port.ReadLine();
                     string[] split = line.Split(new char[] { '\t', '\r', ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                    if (split.Length != 4)
+                    if (split.Length != 5)
                     {
                         continue;
                     }
@@ -117,6 +120,7 @@ namespace BlueTest9
                         float pressure2 = float.Parse(split[1]);
                         float pressure3 = float.Parse(split[2]);
                         float pressure4 = float.Parse(split[3]);
+                        float force_kg = float.Parse(split[4]);
                         //float det_voltage = 0;
                         //int is_open = 0;
                         //int is_auto_armed = 0;
@@ -126,14 +130,16 @@ namespace BlueTest9
                         //int is_open = int.Parse(split[6]);
                         //int is_auto_armed = int.Parse(split[7]);
                         //int ematch_detected_time = int.Parse(split[7]);
-                        Console.Write("\r{0},{1},{2},{3}", pressure1, pressure2, pressure3, pressure4);
+                        byte[] log_line = Encoding.UTF8.GetBytes(String.Format("{0},{1},{2},{3},{4}\n", pressure1, pressure2, pressure3, pressure4, force_kg));
+                        Console.Write("\r{0},{1},{2},{3},{4}", pressure1, pressure2, pressure3, pressure4, force_kg);
+                        csvLog.Write(log_line, 0, log_line.Length);
                         //avg1 = avg1 * 0.9 + (float)pressure1 * 0.1;
-                        //avg2 = avg2 * 0.9 + (float)pressure2 * 0.1;
-                        //avg3 = avg3 * 0.9 + (float)pressure3 * 0.1;
+                        avg2 = avg2 * 0.95 + (float)pressure2 * 0.05;
+                        avg3 = avg3 * 0.95 + (float)pressure3 * 0.05;
                         //server.force = 100;
                         //server.force = force;
-                        //server.pressure1 = (float)avg1;
-                        //server.pressure2 = (float)avg2;
+                        server.pressure1 = (float)avg2;
+                        server.pressure2 = (float)avg3;
                         //server.ballValveOpen = (is_open == 1);
                         //server.det_voltage = det_voltage;
                         //server.is_auto_armed = (is_auto_armed == 1);
@@ -148,6 +154,7 @@ namespace BlueTest9
                 }
 
                 port.Close();
+                csvLog.Flush();
                 csvLog.Close();
             } catch(System.AggregateException e)
             {
