@@ -18,6 +18,7 @@
         </div>
     </div>
     <script>
+        let isLaptop = window.navigator.userAgent.search("Windows") != -1;
 const OpenCode = 129035867;
 const CloseCode = 2065891205;
 const ArmCode = 671238032;
@@ -41,7 +42,46 @@ const AUTOARM = document.getElementById("auto arm");
 const AUTODISARM = document.getElementById("auto disarm");
 const READOUT = document.getElementById("readout");
 let armed = false;
+if (isLaptop) {
+ARM.addEventListener("click", ()=>{
+    
+    armed = !armed;
+    ARM.style.backgroundColor = (armed) ? "green" : "red";
+})
+OPEN.addEventListener("click", ()=>{
+    if(armed){
+        write_command(OpenCode);
+        armed = false;
+        ARM.style.backgroundColor = "red";
 
+    }
+})
+CLOSE.addEventListener("click", ()=>{
+    if(armed){
+        write_command(CloseCode);
+        armed = false;
+        ARM.style.backgroundColor = "red";
+
+    }
+})
+AUTOARM.addEventListener("click", ()=>{
+    if(armed){
+        write_command(ArmCode);
+        armed = false;
+        ARM.style.backgroundColor = "red";
+
+    }
+})
+AUTODISARM.addEventListener("click", ()=>{
+    if(armed){
+        write_command(DisarmCode);
+        armed = false;
+        ARM.style.backgroundColor = "red";
+
+    }
+})    
+}
+{ 
 ARM.addEventListener("touchstart", ()=>{
     ARM.style.backgroundColor = "green";
     armed = true;
@@ -70,6 +110,7 @@ AUTODISARM.addEventListener("touchstart", ()=>{
         write_command(DisarmCode);
     }
 })
+}
 
 
 
