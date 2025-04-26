@@ -116,14 +116,13 @@ namespace BlueTest9
 
                     string line = port.ReadLine();
                     string[] split = line.Split(new char[] { '\t', '\r', ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                    if (split.Length != 12)
+                    if (split.Length != 13)
                     {
                         continue;
                     }
                     try
                     {
                         int millis = int.Parse(split[0]);
-                        //float force = float.Parse(split[1]);
                         float pressure1 = float.Parse(split[1]);
                         float pressure2 = float.Parse(split[2]);
                         float pressure3 = float.Parse(split[3]);
@@ -136,14 +135,19 @@ namespace BlueTest9
                         int ballvalve_open = int.Parse(split[10]);
                         int ballvalve_engaged = int.Parse(split[11]);
                         float force_kg = float.Parse(split[12]);
-                        byte[] log_line = Encoding.UTF8.GetBytes(String.Format("{0},{1},{2},{3},{4},{5},{6},{7},[8},{9},{10},{11}\n", 
+                        byte[] log_line = Encoding.UTF8.GetBytes(String.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12}\n", 
+                            millis,
                             pressure1, pressure2, pressure3, pressure4,
                             pyro_a_volt, pyro_b_volt, pyro_in_0_volt, pyro_in_1_volt,
-                            armed, ballvalve_open, force_kg));
-                        Console.Write("\r{0},{1},{2},{3},{4},{5},{6},{7},[8},{9},{10},{11}", pressure1, pressure2, pressure3, pressure4,
-                            pyro_a_volt, pyro_b_volt, pyro_in_0_volt, pyro_in_1_volt,
-                            armed, ballvalve_open, force_kg);
+                            armed, ballvalve_open, ballvalve_engaged, force_kg));
                         csvLog.Write(log_line, 0, log_line.Length);
+
+                        Console.Write("\r{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}", 
+                            pressure1, pressure2, pressure3, pressure4,
+                            pyro_a_volt, pyro_b_volt, pyro_in_0_volt, pyro_in_1_volt,
+                            armed, ballvalve_open, ballvalve_engaged, force_kg);
+
+
                         //avg1 = avg1 * 0.9 + (float)pressure1 * 0.1;
                         avg2 = avg2 * 0.95 + (float)pressure2 * 0.05;
                         avg3 = avg3 * 0.95 + (float)pressure3 * 0.05;
