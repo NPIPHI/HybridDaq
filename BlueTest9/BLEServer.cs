@@ -11,8 +11,9 @@ namespace BlueTest9
     {
         Open,
         Close,
-        AutoArm,
-        AutoDisarm,
+        Arm,
+        Disarm,
+        Fire,
         None
     }
     public class BLEServer
@@ -24,15 +25,16 @@ namespace BlueTest9
         private static readonly int CloseCode = 2065891205;
         private static readonly int ArmCode = 671238032;
         private static readonly int DisarmCode = 301529212;
+        private static readonly int FireCode = 913844192;
         private GattServiceProvider serviceProvider;
         private GattLocalCharacteristic DAQCharacteristic;
         private GattLocalCharacteristic actuateCharacteristic;
         public float force = 0;
         public float pressure1 = 0;
         public float pressure2 = 0;
-        public float det_voltage = 0;
-        public bool ballValveOpen = false;
-        public bool is_auto_armed = false;
+        public bool ball_valve_open = false;
+        public bool is_armed = false;
+        public bool ball_valve_engaged = false;
         public BallValveAction action = BallValveAction.None;
         private static readonly GattLocalCharacteristicParameters ReadParams = new GattLocalCharacteristicParameters
         {
@@ -127,9 +129,9 @@ namespace BlueTest9
                 writer.WriteSingle(force);
                 writer.WriteSingle(pressure1);
                 writer.WriteSingle(pressure2);
-                writer.WriteSingle(det_voltage);
-                writer.WriteBoolean(ballValveOpen);
-                writer.WriteBoolean(is_auto_armed);
+                writer.WriteBoolean(ball_valve_engaged);
+                writer.WriteBoolean(ball_valve_open);
+                writer.WriteBoolean(is_armed);
                 request.RespondWithValue(writer.DetachBuffer());
             }
         }
@@ -171,13 +173,18 @@ namespace BlueTest9
                 else if (val == ArmCode)
                 {
                     Console.WriteLine("ARM");
-                    action = BallValveAction.AutoArm;
+                    action = BallValveAction.Arm;
                 } 
                 else if (val == DisarmCode)
                 {
                     Console.WriteLine("DISARM");
-                    action = BallValveAction.AutoDisarm;
+                    action = BallValveAction.Disarm;
                 } 
+                else if (val == FireCode)
+                {
+                    Console.WriteLine("FIRE");
+                    action = BallValveAction.Fire;
+                }
                 else {
                     Console.WriteLine($"Unrecognized val {val}");
                 }

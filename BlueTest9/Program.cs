@@ -43,16 +43,19 @@ namespace BlueTest9
                 switch (line)
                 {
                     case "a":
-                        server.action = BallValveAction.AutoArm;
+                        server.action = BallValveAction.Arm;
                         break;
                     case "d":
-                        server.action = BallValveAction.AutoDisarm;
+                        server.action = BallValveAction.Disarm;
                         break;
                     case "o":
                         server.action = BallValveAction.Open;
                         break;
                     case "c":
                         server.action = BallValveAction.Close;
+                        break;
+                    case "f":
+                        server.action = BallValveAction.Fire;
                         break;
                     case "quit":
                         should_quit = true;
@@ -95,43 +98,51 @@ namespace BlueTest9
                         port.Write("o");
                         server.action = BallValveAction.None;
                     }
-                    if (server.action == BallValveAction.AutoArm)
+                    if (server.action == BallValveAction.Arm)
                     {
                         port.Write("a");
                         server.action = BallValveAction.None;
                     }
-                    if (server.action == BallValveAction.AutoDisarm)
+                    if (server.action == BallValveAction.Disarm)
                     {
                         port.Write("d");
+                        server.action = BallValveAction.None;
+                    }
+                    if (server.action == BallValveAction.Fire)
+                    {
+                        port.Write("f");
                         server.action = BallValveAction.None;
                     }
 
                     string line = port.ReadLine();
                     string[] split = line.Split(new char[] { '\t', '\r', ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                    if (split.Length != 5)
+                    if (split.Length != 12)
                     {
                         continue;
                     }
                     try
                     {
-                        //int millis = int.Parse(split[0]);
+                        int millis = int.Parse(split[0]);
                         //float force = float.Parse(split[1]);
-                        float pressure1 = float.Parse(split[0]);
-                        float pressure2 = float.Parse(split[1]);
-                        float pressure3 = float.Parse(split[2]);
-                        float pressure4 = float.Parse(split[3]);
-                        float force_kg = float.Parse(split[4]);
-                        //float det_voltage = 0;
-                        //int is_open = 0;
-                        //int is_auto_armed = 0;
-                        //int ematch_detected_time = 0;
-                        //int ematch_deteced_time = 0;
-                        //float det_voltage = float.Parse(split[5]);
-                        //int is_open = int.Parse(split[6]);
-                        //int is_auto_armed = int.Parse(split[7]);
-                        //int ematch_detected_time = int.Parse(split[7]);
-                        byte[] log_line = Encoding.UTF8.GetBytes(String.Format("{0},{1},{2},{3},{4}\n", pressure1, pressure2, pressure3, pressure4, force_kg));
-                        Console.Write("\r{0},{1},{2},{3},{4}", pressure1, pressure2, pressure3, pressure4, force_kg);
+                        float pressure1 = float.Parse(split[1]);
+                        float pressure2 = float.Parse(split[2]);
+                        float pressure3 = float.Parse(split[3]);
+                        float pressure4 = float.Parse(split[4]);
+                        float pyro_a_volt = float.Parse(split[5]);
+                        float pyro_b_volt = float.Parse(split[6]);
+                        float pyro_in_0_volt = float.Parse(split[7]);
+                        float pyro_in_1_volt = float.Parse(split[8]);
+                        int armed = int.Parse(split[9]);
+                        int ballvalve_open = int.Parse(split[10]);
+                        int ballvalve_engaged = int.Parse(split[11]);
+                        float force_kg = float.Parse(split[12]);
+                        byte[] log_line = Encoding.UTF8.GetBytes(String.Format("{0},{1},{2},{3},{4},{5},{6},{7},[8},{9},{10},{11}\n", 
+                            pressure1, pressure2, pressure3, pressure4,
+                            pyro_a_volt, pyro_b_volt, pyro_in_0_volt, pyro_in_1_volt,
+                            armed, ballvalve_open, force_kg));
+                        Console.Write("\r{0},{1},{2},{3},{4},{5},{6},{7},[8},{9},{10},{11}", pressure1, pressure2, pressure3, pressure4,
+                            pyro_a_volt, pyro_b_volt, pyro_in_0_volt, pyro_in_1_volt,
+                            armed, ballvalve_open, force_kg);
                         csvLog.Write(log_line, 0, log_line.Length);
                         //avg1 = avg1 * 0.9 + (float)pressure1 * 0.1;
                         avg2 = avg2 * 0.95 + (float)pressure2 * 0.05;
@@ -140,6 +151,9 @@ namespace BlueTest9
                         //server.force = force;
                         server.pressure1 = (float)avg2;
                         server.pressure2 = (float)avg3;
+                        server.ball_valve_open = ballvalve_open == 1;
+                        server.is_armed = armed == 1;
+                        server.ball_valve_engaged = ballvalve_engaged == 1;
                         //server.ballValveOpen = (is_open == 1);
                         //server.det_voltage = det_voltage;
                         //server.is_auto_armed = (is_auto_armed == 1);
