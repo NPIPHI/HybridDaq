@@ -154,6 +154,8 @@ namespace BlueTest9
                         server.ball_valve_open = ballvalve_open == 1;
                         server.is_armed = armed == 1;
                         server.ball_valve_engaged = ballvalve_engaged == 1;
+                        server.pyro0 = pyro_a_volt;
+                        server.pyro1 = pyro_b_volt;
                         //server.ballValveOpen = (is_open == 1);
                         //server.det_voltage = det_voltage;
                         //server.is_auto_armed = (is_auto_armed == 1);

@@ -8,13 +8,14 @@
 <body style="width: 100vw; height: 100vh; overflow: hidden; margin: 0; padding: 0;">
     <button id="connect" style="width: 100%; height: 100%;" onclick="connect()">Connect</button>
     <div id="ui" style="display: none; width: 100%; height: 100%;">
-        <div style="display: grid; grid-template-rows: 2fr 1fr 1fr 1fr; grid-template-columns: 1fr 1fr; width: 100%; height: 80%;">
+        <div style="display: grid; grid-template-rows: 2fr 1fr 1fr 1fr; grid-template-columns: 1fr 1fr 1fr; width: 100%; height: 80%;">
             <div id="readout" style="grid-column: 1 / span 2;"></div>
             <button id="arm" style="background-color: red; grid-column: 1 / span 2;">ARM</button>
             <button id="close">CLOSE</button>
             <button id="open">OPEN</button>
-            <button id="auto arm">AUTOARM</button>
-            <button id="auto disarm">AUTODISARM</button>
+            <button id="fire arm">FIREARM</button>
+            <button id="fire disarm">FIREDISARM</button>
+            <button id="fire" style="background-color: red; grid-column: 1 / span 2;">FIRE</button>
         </div>
     </div>
     <script>
@@ -22,24 +23,28 @@ const OpenCode = 129035867;
 const CloseCode = 2065891205;
 const ArmCode = 671238032;
 const DisarmCode = 301529212;
+const FireCode = 913844192;
 
 function read_dataview(value){
     return {
         force: value.getFloat32(0,true),
         pres1: value.getFloat32(4,true),
         pres2: value.getFloat32(8,true),
-        det_volt: value.getFloat32(12,true),
-        ball_open: value.getInt8(16),
-        armed: value.getInt8(17),
+        pyro0: value.getFloat32(12,true),
+        pyro1: value.getFloat32(16,true),
+        ball_engaged: value.getInt8(21,true),
+        ball_open: value.getInt8(22),
+        armed: value.getInt8(23),
     }
 }
 
 const ARM = document.getElementById("arm")
 const OPEN = document.getElementById("open")
 const CLOSE = document.getElementById("close")
-const AUTOARM = document.getElementById("auto arm");
-const AUTODISARM = document.getElementById("auto disarm");
+const FIREARM = document.getElementById("fire arm");
+const FIREDISARM = document.getElementById("fire disarm");
 const READOUT = document.getElementById("readout");
+const FIRE = document.getElementById("fire");
 let armed = false;
 
 ARM.addEventListener("touchstart", ()=>{
@@ -60,14 +65,19 @@ CLOSE.addEventListener("touchstart", ()=>{
         write_command(CloseCode);
     }
 })
-AUTOARM.addEventListener("touchstart", ()=>{
+FIREARM.addEventListener("touchstart", ()=>{
     if(armed){
         write_command(ArmCode);
     }
 })
-AUTODISARM.addEventListener("touchstart", ()=>{
+FIREDISARM.addEventListener("touchstart", ()=>{
     if(armed){
         write_command(DisarmCode);
+    }
+})
+FIRE.addEventListener("touchstart", ()=>{
+    if(armed){
+        write_command(FireCode);
     }
 })
 
@@ -122,7 +132,9 @@ async function start_polling({daq,actuate}){
 `Force(g)   ${read.force}
 Pres1(psi) ${read.pres1}
 Pres2(psi) ${read.pres2}
-Volt(v)    ${read.det_volt}
+Pyro0(V) ${read.pyro0}
+Pyro1(V) ${read.pyro1}
+Firing    ${read.ball_engaged}
 Armed      ${read.armed}
 Ball Open  ${read.ball_open}`;
 
@@ -135,11 +147,11 @@ Ball Open  ${read.ball_open}`;
         }
 
         if(read.armed) {
-            AUTOARM.style.backgroundColor = "lightgreen";
-            AUTODISARM.style.backgroundColor = "gray";
+            FIREARM.style.backgroundColor = "lightgreen";
+            FIREDISARM.style.backgroundColor = "gray";
         } else {
-            AUTOARM.style.backgroundColor = "gray";
-            AUTODISARM.style.backgroundColor = "lightgreen";
+            FIREARM.style.backgroundColor = "gray";
+            FIREDISARM.style.backgroundColor = "lightgreen";
         }
     }
 }

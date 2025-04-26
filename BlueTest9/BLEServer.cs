@@ -35,6 +35,8 @@ namespace BlueTest9
         public bool ball_valve_open = false;
         public bool is_armed = false;
         public bool ball_valve_engaged = false;
+        public float pyro0 = 0;
+        public float pyro1 = 0;
         public BallValveAction action = BallValveAction.None;
         private static readonly GattLocalCharacteristicParameters ReadParams = new GattLocalCharacteristicParameters
         {
@@ -129,6 +131,8 @@ namespace BlueTest9
                 writer.WriteSingle(force);
                 writer.WriteSingle(pressure1);
                 writer.WriteSingle(pressure2);
+                writer.WriteSingle(pyro0);
+                writer.WriteSingle(pyro1);
                 writer.WriteBoolean(ball_valve_engaged);
                 writer.WriteBoolean(ball_valve_open);
                 writer.WriteBoolean(is_armed);
