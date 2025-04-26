@@ -8,7 +8,7 @@
 <body style="width: 100vw; height: 100vh; overflow: hidden; margin: 0; padding: 0;">
     <button id="connect" style="width: 100%; height: 100%;" onclick="connect()">Connect</button>
     <div id="ui" style="display: none; width: 100%; height: 100%;">
-        <div style="display: grid; grid-template-rows: 2fr 1fr 1fr 1fr; grid-template-columns: 1fr 1fr 1fr; width: 100%; height: 80%;">
+        <div style="display: grid; grid-template-rows: 2fr 1fr 1fr 1fr 1fr; grid-template-columns: 1fr 1fr; width: 100%; height: 80%;">
             <div id="readout" style="grid-column: 1 / span 2;"></div>
             <button id="arm" style="background-color: red; grid-column: 1 / span 2;">ARM</button>
             <button id="close">CLOSE</button>
@@ -32,9 +32,9 @@ function read_dataview(value){
         pres2: value.getFloat32(8,true),
         pyro0: value.getFloat32(12,true),
         pyro1: value.getFloat32(16,true),
-        ball_engaged: value.getInt8(21,true),
-        ball_open: value.getInt8(22),
-        armed: value.getInt8(23),
+        ball_engaged: value.getInt8(20,true),
+        ball_open: value.getInt8(21),
+        armed: value.getInt8(22),
     }
 }
 

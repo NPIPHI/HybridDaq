@@ -72,7 +72,7 @@ namespace BlueTest9
             Console.WriteLine("Running Serial");
             try
             {
-                SerialPort port = new SerialPort(address, 38400);
+                SerialPort port = new SerialPort(address, 115200);
                 StorageFile file = await DownloadsFolder.CreateFileAsync(DateTime.Now.ToString("yyyy.MM.dd.HH.mm.ss") + ".csv");
                 Console.WriteLine($"Logging to {file.Path}");
                 BufferedStream csvLog = new BufferedStream(await file.OpenStreamForWriteAsync());
